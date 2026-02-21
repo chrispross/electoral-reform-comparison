@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electoral System Comparison - Interactive Slider</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .comparison-container {
+            position: relative;
+            max-width: 1600px;
+            width: 100%;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .image-container {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .image-container img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .before-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .before-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .slider {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #fff;
+            cursor: ew-resize;
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        .slider-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .slider-button::before,
+        .slider-button::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+
+        .slider-button::before {
+            left: 12px;
+            border-width: 8px 12px 8px 0;
+            border-color: transparent #333 transparent transparent;
+        }
+
+        .slider-button::after {
+            right: 12px;
+            border-width: 8px 0 8px 12px;
+            border-color: transparent transparent transparent #333;
+        }
+
+        .labels {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 40px;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .label {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .instructions {
+            margin-top: 20px;
+            padding: 15px 25px;
+            background: white;
+            border-radius: 6px;
+            color: #666;
+            font-size: 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>Electoral System Comparison</h1>
+    <p class="subtitle">Drag the slider to compare Current FPTP vs. Proportional FPTP</p>
+
+    <div class="comparison-container">
+        <div class="image-container">
+            <!-- After image (Proportional FPTP - shown on right) -->
+            <img src="weighted_all_elections.png" alt="Proportional First Past The Post">
+
+            <!-- Before image (Current FPTP - shown on left) -->
+            <div class="before-image" id="beforeImage">
+                <img src="fptp_all_elections.png" alt="Current System FPTP">
+            </div>
+
+            <!-- Labels -->
+            <div class="labels">
+                <div class="label">Current System</div>
+                <div class="label">Proportional FPTP</div>
+            </div>
+
+            <!-- Slider -->
+            <div class="slider" id="slider">
+                <div class="slider-button"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="instructions">
+        💡 <strong>Tip:</strong> Drag the slider left and right to compare how voting power changes between the current system and the proposed proportional system
+    </div>
+
+    <script>
+        const slider = document.getElementById('slider');
+        const beforeImage = document.getElementById('beforeImage');
+        const container = slider.parentElement;
+
+        let isDragging = false;
+
+        function updateSlider(x) {
+            const rect = container.getBoundingClientRect();
+            const position = Math.max(0, Math.min(x - rect.left, rect.width));
+            const percentage = (position / rect.width) * 100;
+
+            slider.style.left = percentage + '%';
+            beforeImage.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`;
+        }
+
+        // Mouse events
+        slider.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                updateSlider(e.clientX);
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        // Touch events for mobile
+        slider.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            e.preventDefault();
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                const touch = e.touches[0];
+                updateSlider(touch.clientX);
+            }
+        });
+
+        document.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        // Click anywhere on the image to move slider
+        container.addEventListener('click', (e) => {
+            if (e.target !== slider && !slider.contains(e.target)) {
+                updateSlider(e.clientX);
+            }
+        });
+
+        // Initialize slider at 50%
+        updateSlider(container.getBoundingClientRect().left + container.offsetWidth / 2);
+    </script>
+</body>
+</html>

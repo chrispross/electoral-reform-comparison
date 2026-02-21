@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electoral System Comparison</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+        }
+        .comparison {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            touch-action: none;
+            user-select: none;
+        }
+        .comparison img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        .before-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .before-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .slider {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: white;
+            cursor: ew-resize;
+            z-index: 10;
+            box-shadow: 0 0 8px rgba(0,0,0,0.5);
+        }
+        .handle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 48px;
+            height: 48px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+        }
+        .handle::before,
+        .handle::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .handle::before {
+            left: 10px;
+            border-width: 8px 10px 8px 0;
+            border-color: transparent #333 transparent transparent;
+        }
+        .handle::after {
+            right: 10px;
+            border-width: 8px 0 8px 10px;
+            border-color: transparent transparent transparent #333;
+        }
+        .labels {
+            position: absolute;
+            top: 15px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 5;
+        }
+        .label {
+            background: rgba(255,255,255,0.95);
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 12px;
+            color: #333;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        @media (min-width: 768px) {
+            .label { font-size: 14px; padding: 8px 16px; }
+            .labels { top: 20px; padding: 0 40px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="comparison" id="comparison">
+            <img src="weighted_all_elections.png" alt="Proportional FPTP">
+            <div class="before-img" id="beforeImg">
+                <img src="fptp_all_elections.png" alt="Current FPTP">
+            </div>
+            <div class="labels">
+                <div class="label">Current System</div>
+                <div class="label">Proportional FPTP</div>
+            </div>
+            <div class="slider" id="slider">
+                <div class="handle"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function() {
+            const slider = document.getElementById('slider');
+            const beforeImg = document.getElementById('beforeImg');
+            const container = document.getElementById('comparison');
+            let isDragging = false;
+
+            function updateSlider(x) {
+                const rect = container.getBoundingClientRect();
+                const pos = Math.max(0, Math.min(x - rect.left, rect.width));
+                const pct = (pos / rect.width) * 100;
+                slider.style.left = pct + '%';
+                beforeImg.style.clipPath = 'inset(0 ' + (100 - pct) + '% 0 0)';
+            }
+
+            function handleMove(e) {
+                if (!isDragging) return;
+                const x = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                updateSlider(x);
+            }
+
+            function handleStart(e) {
+                isDragging = true;
+                e.preventDefault();
+            }
+
+            function handleEnd() {
+                isDragging = false;
+            }
+
+            slider.addEventListener('mousedown', handleStart);
+            slider.addEventListener('touchstart', handleStart);
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('touchmove', handleMove);
+            document.addEventListener('mouseup', handleEnd);
+            document.addEventListener('touchend', handleEnd);
+
+            container.addEventListener('click', function(e) {
+                if (e.target !== slider && !slider.contains(e.target)) {
+                    const x = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                    updateSlider(x);
+                }
+            });
+
+            // Init at 50%
+            updateSlider(container.getBoundingClientRect().left + container.offsetWidth / 2);
+        })();
+    </script>
+</body>
+</html>
